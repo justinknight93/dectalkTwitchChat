@@ -3,6 +3,7 @@ const tmi = require('tmi.js');
 require('dotenv').config();
 const gkm = require('gkm');
 const exec = require('child_process').execFile;
+const player = require('node-wav-player');
 
 const black = "black";
 const red = "red";
@@ -65,7 +66,7 @@ gkm.events.on('key.pressed', function (data) {
         }
     }
 
-    if (data == "F11") {
+    if (data == "F12") {
         killAllTTS();
 
     }
@@ -84,20 +85,28 @@ const showCurrentMessage = () => {
 }
 
 const sayMessage = (message) => {
-    exec('say.exe', [`[:PHONEME ${process.env.PHONEME}] ${message}`], { cwd: './DECtalk/' }, (err, data) => {
+    exec('say.exe', ["-w",`../sounds/speech.wav`,`[:PHONEME ${process.env.PHONEME}] ${message}`], { cwd: './DECtalk/' }, (err, data) => {
         if (err) log(err);
-        showCurrentMessage();
+        
     });
 
+    player.play({
+        path: 'sounds/speech.wav',
+      }).then(() => {
+        showCurrentMessage();
+        log('The wav file started to be played successfully.');
+      }).catch((error) => {
+        showCurrentMessage();
+        log(error);
+      });
+
+    
 }
 
 const killAllTTS = () => {
-    exec('taskkill', ['/f', '/im', 'say.exe'], null, (err, data) => {
-        if (err) log(err);
-        showCurrentMessage();
-        log("Stopped all tts.");
-    });
-
+    player.stop();
+    showCurrentMessage();
+    log("Stopped talking.");
 }
 
 
